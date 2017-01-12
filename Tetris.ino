@@ -1,4 +1,4 @@
-//#include <avr/io.h>
+#include <avr/io.h>
 
 #define SR_LATCH 2
 #define SR_CLOCK 3
@@ -6,7 +6,6 @@
 #define SR_RESET 5
 #define DEBUG false
 
-/*
 #define SHIFT_REGISTER DDRB
 #define SHIFT_PORT PORTB
 #define DATA (1<<PB3)    //MOSI (SI)
@@ -14,7 +13,6 @@
 #define CLOCK (1<<PB5)    //SCK  (SCK)
 
 // http://jumptuck.com/2011/11/03/how-to-drive-595-shift-registers-with-avr-hardware-spi/
-*/
 
 // Color data.
 // Always on = 10, always off = 0, otherwise on for number of cycles.
@@ -92,12 +90,11 @@ void setup()
   digitalWrite(SR_DATA, LOW);
   digitalWrite(SR_RESET, HIGH);
 
-  /*
+  
   SHIFT_REGISTER |= (DATA | LATCH | CLOCK);  //Set control pins as outputs
   SHIFT_PORT &= ~(DATA | LATCH | CLOCK);    //Set control pins low
 
-  SPCR = (1<<SPE) | (1<<MSTR);  //Start SPI as Master
-  */
+  SPCR = (1 << SPE) | (1 << MSTR) | (1 << DORD);  // Start SPI as Master, transfer with LSBFIRST
   
   Serial.begin(9600);
   Serial.println("Setup done");
@@ -209,18 +206,18 @@ void clear_sr()
 // Shift out data to shift register (including latch).
 void shiftout_sr(byte* d)
 {
-  //SHIFT_PORT &= ~LATCH;
-  digitalWrite(SR_LATCH, LOW);
+  SHIFT_PORT &= ~LATCH;
+  //digitalWrite(SR_LATCH, LOW);
 
   for (int i = 6; i >= 0; i--)
   {
-    shiftOut(SR_DATA, SR_CLOCK, LSBFIRST, d[i]);
-    //spi_send(d[i]);
+    //shiftOut(SR_DATA, SR_CLOCK, LSBFIRST, d[i]);
+    spi_send(d[i]);
   }
   
-  digitalWrite(SR_LATCH, HIGH);
-  //SHIFT_PORT |= LATCH;
-  //SHIFT_PORT &= ~LATCH;
+  //digitalWrite(SR_LATCH, HIGH);
+  SHIFT_PORT |= LATCH;
+  SHIFT_PORT &= ~LATCH;
 }
 
 void spi_send(byte d)
