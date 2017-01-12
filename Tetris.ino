@@ -4,6 +4,7 @@
 #define SR_CLOCK 3
 #define SR_DATA 4
 #define SR_RESET 5
+#define DEBUG false
 
 /*
 #define SHIFT_REGISTER DDRB
@@ -111,8 +112,16 @@ void loop()
     unsigned long row_data = 0; // 32 bits that are all disabled.
                                 // The first 20 bits of row_data are used for the state of the row outputs (top to bottom).
 
-    row_data |= 1 << (32 - row - 1);  // Set enabled bit for current row
+    row_data |= 1UL << (32 - row - 1);  // Set enabled bit for current row
                                       // Example: if row == 2 (which is the 3rd row) then row_data = 00100000000000000000000000000000
+
+    if (DEBUG)
+    {
+      Serial.print("Row: ");
+      Serial.print(row);
+      Serial.print(": ");
+      Serial.println(row_data);
+    }
     
     for (int col = 0; col < 10; col++)
     {
@@ -125,7 +134,7 @@ void loop()
       uint32_t column_data = (uint32_t)-1;  // 32 bits that are all enabled.
                                             // The first 30 bits of column_data are used for the state of the column outputs (left to right).
                                             // 0 - 9 = RED, 10 - 19 = GREEN, 20 - 29 = BLUE.
-      
+
       // Get RGB value for current pixel in framebuffer.
       byte r = palette[framebuffer[row][col]][0];
       byte g = palette[framebuffer[row][col]][1];
@@ -145,30 +154,34 @@ void loop()
       {
         column_data &= ~(1UL << (32 - col - 20 - 1));
       }
-
+      
       // Split row_data and column_data to seperate bytes.
       data[0] = (byte)((row_data >> 24) & 0xFF);
       data[1] = (byte)((row_data >> 16) & 0xFF);
       data[2] = (byte)((row_data >> 8) & 0xFF);
-      data[3] = (byte)((column_data >> 24) & 0xFF);
+      data[3] = (byte)((column_data >> 24) & 0xFF); //255 & ~(1 << 7);
       data[4] = (byte)((column_data >> 16) & 0xFF);
       data[5] = (byte)((column_data >> 8) & 0xFF);
       data[6] = (byte)(column_data & 0xFF);
 
       // Output debug data to serial monitor.
-      Serial.print(row);
-      Serial.print(":\t");
-      
-      for (int i = 0; i < 7; i++)
+      if (DEBUG)
       {
-        Serial.print("(");
-        Serial.print(data[i]);
-        Serial.print(") ");
-        print_bin(data[i]);
-        Serial.print("\t");
+        Serial.print(row);
+        Serial.print(":\t");
+        
+        for (int i = 0; i < 7; i++)
+        {
+          Serial.print("(");
+          Serial.print(data[i]);
+          Serial.print(") ");
+          print_bin(data[i]);
+          Serial.print("\t");
+        }
+  
+        Serial.print(column_data);
+        Serial.print("\r\n");
       }
-
-      Serial.print("\r\n");
       
       // Shift out the data to the shift registers.
       // The first byte needs to be shift out as last (rows are at the top of the shift registers).
@@ -177,10 +190,13 @@ void loop()
     }
   }
 
-  Serial.print("Duration: ");
-  Serial.println(micros() - start_time);
-
-  delay(100000);
+  if (DEBUG)
+  {
+    Serial.print("Duration: ");
+    Serial.println(micros() - start_time);
+  
+    delay(100000);
+  }
 }
 
 // Clear the shift registers.
