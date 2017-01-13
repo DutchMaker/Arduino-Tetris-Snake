@@ -31,12 +31,20 @@ byte Display::get_pixel(byte x, byte y)
 // Update the display according to the data in the framebuffer.
 void Display::update(unsigned long t)
 {
-  /*if (t - _last_update < (1000 / FPS))
+  if (t - _last_update < (1000 / FPS))
   {
     // Only update FPS times per second
+    if (!_cleared)
+    {
+      clearscreen();
+      _cleared = true;
+    }
+    
     return;
-  }*/
-  
+  }
+
+  _cleared = false;
+    
   for (int row = 0; row < 20; row++)
   {
     unsigned long row_data = 0; // 32 bits that are all disabled.
@@ -45,14 +53,6 @@ void Display::update(unsigned long t)
     row_data |= 1UL << (32 - row - 1);  // Set enabled bit for current row
                                         // Example: if row == 2 (which is the 3rd row) then row_data = 00100000000000000000000000000000
 
-    if (DEBUG_DISPLAY)
-    {
-      Serial.print("Row: ");
-      Serial.print(row);
-      Serial.print(": ");
-      Serial.println(row_data);
-    }
-    
     for (int col = 0; col < 10; col++)
     {
       if (_framebuffer[row][col] == 0)
@@ -94,24 +94,6 @@ void Display::update(unsigned long t)
       _data[5] = (byte)((column_data >> 8) & 0xFF);
       _data[6] = (byte)(column_data & 0xFF);
 
-      // Output debug data to serial monitor.
-      if (DEBUG_DISPLAY)
-      {
-        Serial.print(row);
-        Serial.print(":\t");
-        
-        for (int i = 0; i < 7; i++)
-        {
-          Serial.print("(");
-          Serial.print(_data[i]);
-          Serial.print(") ");
-          Serial.print("\t");
-        }
-  
-        Serial.print(column_data);
-        Serial.print("\r\n");
-      }
-      
       // Shift out the data to the shift registers.
       // The first byte needs to be shift out as last (rows are at the top of the shift registers).
       // The last bit if each byte needs to be shift out first (LSBFIRST).
@@ -119,14 +101,27 @@ void Display::update(unsigned long t)
     }
   }
 
-  //_last_update = millis();
+  _last_update = millis();
 }
 
 // Clear the shift registers (clears screen)
 void Display::clearscreen()
 {
+  /*
   SHIFT_PORT &= ~SR_RESET;  // Reset low
   SHIFT_PORT |= SR_RESET;   // Reset high
+  */
+
+  // For some reason, shifting out all zeros behaves differently from reset?
+  _data[0] = 0;
+  _data[1] = 0;
+  _data[2] = 0;
+  _data[3] = 0;
+  _data[4] = 0;
+  _data[5] = 0;
+  _data[6] = 0;
+
+  shiftout(_data);
 }
 
 // Shift out data to shift register and latch.

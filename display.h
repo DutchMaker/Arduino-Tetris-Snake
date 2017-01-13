@@ -5,7 +5,7 @@
 #include <avr/io.h>
 
 #define DEBUG_DISPLAY false
-#define FPS = 30;
+#define FPS 200
 
 #define SHIFT_PORT PORTB
 #define SR_DATA (1<<PB3)  // MOSI (SI)  11
@@ -30,6 +30,8 @@ class Display
     void clearscreen();
 
     unsigned long _last_update;
+    bool _cleared;
+    
     byte _data[7];
     byte _framebuffer[20][10];
     byte _palette[8][3] = { { 0, 0, 0 }, { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 }, { 1, 1, 0 }, { 0, 1, 1 }, { 1, 0, 1 }, { 1, 1, 1 } };
