@@ -1,9 +1,18 @@
 #include "display.h"
 
+#define LEFT_INT 0   // Pin 2
+#define RIGHT_INT 1  // Pin 3
+
 Display display;
 
 void setup() 
 {
+  attachInterrupt(LEFT_INT, press_left, FALLING);
+  attachInterrupt(RIGHT_INT, press_right, FALLING);
+  //attachInterrupt(RIGHT_INT, press_right, FALLING);
+  //attachInterrupt(RIGHT_INT, release_right, RISING);
+  
+  
   display.init();  
 
   /*for (byte y = 0; y < 20; y++)
@@ -33,13 +42,37 @@ void setup()
   display.set_pixel(3, 5, 7);
   display.set_pixel(4, 5, 7);
 
-  //Serial.begin(9600);
-  //Serial.println("Setup done");
+  Serial.begin(9600);
+  Serial.println("Setup done");
 
   // Timer0 is already used for millis() - we'll just interrupt somewhere
   // in the middle and call the "Compare A" function below
   OCR0A = 0xAF;
   TIMSK0 |= _BV(OCIE0A);
+}
+
+void press_left()
+{
+  Serial.println("left p");
+  display.set_pixel(0, 10, 7);
+}
+
+void press_right()
+{
+  Serial.println("right p");
+  display.set_pixel(9, 10, 7);
+}
+
+void release_left()
+{
+  Serial.println("left r");
+  display.clear_pixel(0, 10);
+}
+
+void release_right()
+{
+  Serial.println("right r");
+  display.clear_pixel(9, 10);
 }
 
 void loop() 
