@@ -1,30 +1,25 @@
 #include <avr/io.h>
 
-#define SR_LATCH 2
-#define SR_CLOCK 3
-#define SR_DATA 4
-#define SR_RESET 5
 #define DEBUG false
 
-#define SHIFT_REGISTER DDRB
 #define SHIFT_PORT PORTB
-#define DATA (1<<PB3)    //MOSI (SI)
-#define LATCH (1<<PB2)    //SS   (RCK)
-#define CLOCK (1<<PB5)    //SCK  (SCK)
-
-// http://jumptuck.com/2011/11/03/how-to-drive-595-shift-registers-with-avr-hardware-spi/
+#define SR_DATA (1<<PB3)  // MOSI (SI)  11
+#define SR_LATCH (1<<PB2) // SS   (RCK) 10
+#define SR_CLOCK (1<<PB5) // SCK  (SCK) 13
+#define SR_RESET (1<<PB1) // 9
 
 // Color data.
-// Always on = 10, always off = 0, otherwise on for number of cycles.
+// Always on = 1, always off = 0.
+// Can be modified to 0 - 10 for example, to implement PWM.
 byte palette[][3] = {
-  {  0,  0,  0 },
-  { 10,  0,  0 },
-  {  0, 10,  0 },
-  {  0,  0, 10 },
-  { 10, 10,  0 },
-  {  0, 10, 10 },
-  { 10,  0, 10 },
-  { 10, 10, 10 }
+  { 0, 0, 0 },
+  { 1, 0, 0 },
+  { 0, 1, 0 },
+  { 0, 0, 1 },
+  { 1, 1, 0 },
+  { 0, 1, 1 },
+  { 1, 0, 1 },
+  { 1, 1, 1 }
 };
 
 // The frame buffer (pixel data).
@@ -80,21 +75,10 @@ byte data[7]; // Shift register data
 
 void setup() 
 {
-  pinMode(SR_LATCH, OUTPUT);
-  pinMode(SR_CLOCK, OUTPUT);
-  pinMode(SR_DATA, OUTPUT);
-  pinMode(SR_RESET, OUTPUT);
-
-  digitalWrite(SR_CLOCK, LOW);
-  digitalWrite(SR_LATCH, LOW);
-  digitalWrite(SR_DATA, LOW);
-  digitalWrite(SR_RESET, HIGH);
-
-  
-  SHIFT_REGISTER |= (DATA | LATCH | CLOCK);  //Set control pins as outputs
-  SHIFT_PORT &= ~(DATA | LATCH | CLOCK);    //Set control pins low
-
-  SPCR = (1 << SPE) | (1 << MSTR) | (1 << DORD);  // Start SPI as Master, transfer with LSBFIRST
+  DDRB |= (SR_DATA | SR_LATCH | SR_CLOCK | SR_RESET); // Set shift register pins as outputs
+  SHIFT_PORT &= ~(SR_DATA | SR_LATCH | SR_CLOCK);     // Set shift register control pins low
+  SHIFT_PORT |= SR_RESET;                             // Set reset pin high
+  SPCR = (1 << SPE) | (1 << MSTR) | (1 << DORD);      // Start SPI as Master, transfer with LSBFIRST
   
   Serial.begin(9600);
   Serial.println("Setup done");
@@ -110,7 +94,7 @@ void loop()
                                 // The first 20 bits of row_data are used for the state of the row outputs (top to bottom).
 
     row_data |= 1UL << (32 - row - 1);  // Set enabled bit for current row
-                                      // Example: if row == 2 (which is the 3rd row) then row_data = 00100000000000000000000000000000
+                                        // Example: if row == 2 (which is the 3rd row) then row_data = 00100000000000000000000000000000
 
     if (DEBUG)
     {
@@ -156,7 +140,7 @@ void loop()
       data[0] = (byte)((row_data >> 24) & 0xFF);
       data[1] = (byte)((row_data >> 16) & 0xFF);
       data[2] = (byte)((row_data >> 8) & 0xFF);
-      data[3] = (byte)((column_data >> 24) & 0xFF); //255 & ~(1 << 7);
+      data[3] = (byte)((column_data >> 24) & 0xFF);
       data[4] = (byte)((column_data >> 16) & 0xFF);
       data[5] = (byte)((column_data >> 8) & 0xFF);
       data[6] = (byte)(column_data & 0xFF);
@@ -189,8 +173,10 @@ void loop()
 
   if (DEBUG)
   {
+    unsigned long duration = micros() - start_time;
+    
     Serial.print("Duration: ");
-    Serial.println(micros() - start_time);
+    Serial.println(duration);
   
     delay(100000);
   }
@@ -199,33 +185,29 @@ void loop()
 // Clear the shift registers.
 void clear_sr()
 {
-  digitalWrite(SR_RESET, LOW);
-  digitalWrite(SR_RESET, HIGH);
+  SHIFT_PORT &= ~SR_RESET;  // Reset low
+  SHIFT_PORT |= SR_RESET;   // Reset high
 }
 
-// Shift out data to shift register (including latch).
+// Shift out data to shift register.
 void shiftout_sr(byte* d)
 {
-  SHIFT_PORT &= ~LATCH;
-  //digitalWrite(SR_LATCH, LOW);
-
+  SHIFT_PORT &= ~SR_LATCH; // Latch low
+  
   for (int i = 6; i >= 0; i--)
   {
-    //shiftOut(SR_DATA, SR_CLOCK, LSBFIRST, d[i]);
     spi_send(d[i]);
   }
   
-  //digitalWrite(SR_LATCH, HIGH);
-  SHIFT_PORT |= LATCH;
-  SHIFT_PORT &= ~LATCH;
+  SHIFT_PORT |= SR_LATCH;  // Toggle latch
+  SHIFT_PORT &= ~SR_LATCH; // Latch low
 }
 
 void spi_send(byte d)
 {
   SPDR = d; //Shift out the data.
   
-  //while(!(SPSR & (1<<SPIF))); //Wait for SPI process to finish
-  loop_until_bit_is_set(SPSR, SPIF); 
+  loop_until_bit_is_set(SPSR, SPIF); // Wait for SPI to finish
 }
 
 // Serial print binary value of a byte.
