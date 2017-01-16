@@ -5,7 +5,7 @@ Display::Display()
 }
 
 // Initialize the display.
-void Display::init()
+void Display::setup()
 {
   DDRB |= (SR_DATA | SR_LATCH | SR_CLOCK | SR_RESET); // Set shift register pins as outputs
   SHIFT_PORT &= ~(SR_DATA | SR_LATCH | SR_CLOCK);     // Set shift register control pins low
@@ -13,25 +13,10 @@ void Display::init()
   SPCR = (1 << SPE) | (1 << MSTR) | (1 << DORD);      // Start SPI as Master, transfer with LSBFIRST
 }
 
-void Display::set_pixel(byte x, byte y, byte value)
-{
-  _framebuffer[y][x] = value;
-}
-  
-void Display::clear_pixel(byte x, byte y)
-{
-  _framebuffer[y][x] = 0;
-}
-
-byte Display::get_pixel(byte x, byte y)
-{
-  return _framebuffer[y][x];
-}
-
 // Update the display according to the data in the framebuffer.
-void Display::update(unsigned long t)
+void Display::update()
 {
-  if (t - _last_update < (1000 / FPS))
+  if (millis() - _last_update < (1000 / FPS))
   {
     // Only update FPS times per second
     if (!_cleared)
@@ -104,6 +89,24 @@ void Display::update(unsigned long t)
   _last_update = millis();
 }
 
+// Set the value of the pixel at specified location.
+void Display::set_pixel(byte x, byte y, byte value)
+{
+  _framebuffer[y][x] = value;
+}
+
+// Clear the value of the pixel at specified location.
+void Display::clear_pixel(byte x, byte y)
+{
+  _framebuffer[y][x] = 0;
+}
+
+// Get the value of the pixel at specified location.
+byte Display::get_pixel(byte x, byte y)
+{
+  return _framebuffer[y][x];
+}
+
 // Clear the shift registers (clears screen)
 void Display::clearscreen()
 {
@@ -141,7 +144,7 @@ void Display::shiftout(byte* data)
 // Send bytes using SPI.
 void Display::spi_send(byte data)
 {
-  SPDR = data; //Shift out the data.
+  SPDR = data; // Shift out the data.
   
   loop_until_bit_is_set(SPSR, SPIF); // Wait for SPI to finish
 }
