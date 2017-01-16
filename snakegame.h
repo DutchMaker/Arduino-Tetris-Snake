@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include "display.h"
+#include "controller.h"
 
 #define SNAKE_DIR_UP 0
 #define SNAKE_DIR_RIGHT 1
@@ -23,16 +24,17 @@
 class SnakeGame
 {
   public:
-    void start(Display* display);
+    void start(Display* display, Controller* controller);
     void update();
-    void change_direction(byte direction);
-
+    
   private:
     void draw_snake();
     void spawn_food();
     void move_snake();
+    void update_direction();
     
     Display* _display;                        // Pointer to Display object.
+    Controller* _controller;
     byte _snake[200][2];                      // Snake body parts (head is at [_snake_length] index of array)
     byte _snake_direction = SNAKE_DIR_RIGHT;  // Direction in which snake is traveling.
     byte _snake_length;                       // Length of snake (number of body parts).

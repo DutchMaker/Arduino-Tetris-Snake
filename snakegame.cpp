@@ -1,9 +1,10 @@
 #include "snakegame.h"
 
 // Start snake game.
-void SnakeGame::start(Display* display)
+void SnakeGame::start(Display* display, Controller* controller)
 {
   _display = display;
+  _controller = controller;
   
   // Reset snake
   for (int i = 0; i < 200; i++)
@@ -31,6 +32,10 @@ void SnakeGame::start(Display* display)
 // Game loop.
 void SnakeGame::update()
 {
+  _controller->update();
+
+  update_direction();
+  
   if (millis() - _snake_last_move > SNAKE_SPEED)
   {
     move_snake();
@@ -170,23 +175,31 @@ void SnakeGame::draw_snake()
   }
 }
 
-// Change the direction in which the snake is traveling.
-void SnakeGame::change_direction(byte direction)
+// Update the direction in which the snake is traveling.
+void SnakeGame::update_direction()
 {
-  switch (_snake_direction)
+  if (_controller->up && _snake_direction != SNAKE_DIR_UP && _snake_direction != SNAKE_DIR_DOWN)
   {
-    case SNAKE_DIR_UP:
-      _snake_direction = SNAKE_DIR_LEFT;
-      break;
-    case SNAKE_DIR_RIGHT:
-      _snake_direction = SNAKE_DIR_UP;
-      break;
-    case SNAKE_DIR_DOWN:
-      _snake_direction = SNAKE_DIR_RIGHT;
-      break;
-    case SNAKE_DIR_LEFT:
-      _snake_direction = SNAKE_DIR_DOWN;
-      break;
+    _snake_direction = SNAKE_DIR_UP;
+    return;
+  }
+
+  if (_controller->right && _snake_direction != SNAKE_DIR_RIGHT && _snake_direction != SNAKE_DIR_LEFT)
+  {
+    _snake_direction = SNAKE_DIR_RIGHT;
+    return;
+  }
+
+  if (_controller->down && _snake_direction != SNAKE_DIR_DOWN && _snake_direction != SNAKE_DIR_UP)
+  {
+    _snake_direction = SNAKE_DIR_DOWN;
+    return;
+  }
+
+  if (_controller->left && _snake_direction != SNAKE_DIR_LEFT && _snake_direction != SNAKE_DIR_RIGHT)
+  {
+    _snake_direction = SNAKE_DIR_LEFT;
+    return;
   }
 }
 
