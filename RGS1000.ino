@@ -13,10 +13,10 @@ void setup()
   led_display.setup();
   controller.setup();
   
-  snake_game.start(&led_display, &controller);
-
   OCR0A = 0xAF;           // Setup timer interrupt.
   TIMSK0 |= _BV(OCIE0A);  // TODO: How to move this to Display class?
+
+  snake_game.start(&led_display, &controller);
 }
 
 void loop() 

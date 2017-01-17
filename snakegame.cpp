@@ -12,12 +12,19 @@ void SnakeGame::start(Display* display, Controller* controller)
   _display = display;
   _controller = controller;
 
+  restart();
+}
+
+void SnakeGame::restart()
+{
   _countdown_state = -1;
   _game_state = SNAKE_GAMESTATE_COUNTDOWN;
 }
 
 void SnakeGame::start_game()
 {
+  _score = 0;
+  
   // Reset snake
   for (int i = 0; i < 200; i++)
   {
@@ -54,6 +61,9 @@ void SnakeGame::update()
     case SNAKE_GAMESTATE_RUNNING:
       update_game();
       break;
+     case SNAKE_GAMESTATE_DEAD:
+      update_dead();
+      break;
   }
 }
 
@@ -61,9 +71,8 @@ void SnakeGame::update()
 void SnakeGame::update_game()
 {
   _controller->update();
-
   update_direction();
-  
+
   if (millis() - _snake_last_move > SNAKE_SPEED)
   {
     move_snake();
@@ -76,12 +85,18 @@ void SnakeGame::update_game()
     
     _snake_last_move = millis();
   }
+
+  if (millis() - _score_last_update >= 1000)
+  {
+    _score += 10;
+    _score_last_update = millis();
+  }
 }
 
 // Update logic for countdown state.
 void SnakeGame::update_countdown()
 {
-  if (millis() - _countdown_last_update < 900)
+  if (millis() - _countdown_last_update < 700)
   {
     return;
   }
@@ -115,6 +130,42 @@ void SnakeGame::update_countdown()
 
   _display->update();
   _countdown_last_update = millis();
+}
+
+// Update logic for dead game state.
+void SnakeGame::update_dead()
+{
+  _controller->update();
+  
+  if (millis() - _dead_last_update < 100)
+  {
+    return;
+  }
+  
+  // Blink the snake.
+  if (_dead_update_state)
+  {
+    draw_snake();
+  }
+  else
+  {
+    _display->clear_pixels();
+  }
+
+  if (millis() - _dead_since > 1000)
+  {
+    if (_controller->up)
+    {
+      restart();
+      start_game();
+      return;
+    }
+  }
+  
+  _dead_update_state = !_dead_update_state;
+
+  _display->update();
+  _dead_last_update = millis();
 }
 
 // Spawn new food at a random location.
@@ -192,6 +243,18 @@ void SnakeGame::move_snake()
           break;
       }
 
+      // Check if head touches a body part.
+      for (byte j = 0; j < _snake_length - 1; j++)
+      {
+        if (_snake[j][0] == new_x && _snake[j][1] == new_y)
+        {
+          _game_state = SNAKE_GAMESTATE_DEAD;
+          _dead_update_state = false;
+          _dead_since = millis();
+          return; 
+        }
+      }
+
       // Check if the head touches food.
       if (new_x == _food_x && new_y == _food_y)
       {
@@ -201,6 +264,8 @@ void SnakeGame::move_snake()
 
         _snake_length++;
         _spawn_new_food = true;
+
+        _score += 1000;
 
         break;
       }
