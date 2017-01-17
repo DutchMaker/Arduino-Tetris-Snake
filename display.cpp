@@ -107,6 +107,18 @@ byte Display::get_pixel(byte x, byte y)
   return _framebuffer[y][x];
 }
 
+// Clears all pixel values.
+void Display::clear_pixels()
+{
+  for (byte y = 0; y < 20; y++)
+  {
+    for (byte x = 0; x < 10; x++)
+    {
+      _framebuffer[y][x] = 0;
+    }
+  }
+}
+
 // Clear the shift registers (clears screen)
 void Display::clearscreen()
 {

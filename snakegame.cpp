@@ -1,11 +1,23 @@
 #include "snakegame.h"
 
+byte countdown_data[3][7][5] = {
+  { { 0, 1, 1, 1, 0 }, { 1, 0, 0, 0, 1 }, { 0, 0, 0, 0, 1 }, { 0, 0, 1, 1, 0 }, { 0, 0, 0, 0, 1 }, { 1, 0, 0, 0, 1 }, { 0, 1, 1, 1, 0 } },
+  { { 0, 1, 1, 1, 0 }, { 1, 0, 0, 0, 1 }, { 0, 0, 0, 1, 0 }, { 0, 0, 1, 0, 0 }, { 0, 1, 0, 0, 0 }, { 1, 0, 0, 0, 0 }, { 1, 1, 1, 1, 1 } },
+  { { 0, 0, 1, 0, 0 }, { 0, 1, 1, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 1, 1, 1, 0 } }
+};
+
 // Start snake game.
 void SnakeGame::start(Display* display, Controller* controller)
 {
   _display = display;
   _controller = controller;
-  
+
+  _countdown_state = -1;
+  _game_state = SNAKE_GAMESTATE_COUNTDOWN;
+}
+
+void SnakeGame::start_game()
+{
   // Reset snake
   for (int i = 0; i < 200; i++)
   {
@@ -25,12 +37,28 @@ void SnakeGame::start(Display* display, Controller* controller)
   _snake[2][0] = 3;
   _snake[2][1] = 4;
 
+  _display->clear_pixels();
+
   draw_snake();
   spawn_food();
 }
 
 // Game loop.
 void SnakeGame::update()
+{
+  switch (_game_state)
+  {
+    case SNAKE_GAMESTATE_COUNTDOWN:
+      update_countdown();
+      break;
+    case SNAKE_GAMESTATE_RUNNING:
+      update_game();
+      break;
+  }
+}
+
+// Update logic for running state.
+void SnakeGame::update_game()
 {
   _controller->update();
 
@@ -48,6 +76,45 @@ void SnakeGame::update()
     
     _snake_last_move = millis();
   }
+}
+
+// Update logic for countdown state.
+void SnakeGame::update_countdown()
+{
+  if (millis() - _countdown_last_update < 900)
+  {
+    return;
+  }
+
+  if (++_countdown_state > 2)
+  {
+    _game_state = SNAKE_GAMESTATE_RUNNING;
+    start_game();
+    
+    return;
+  }
+
+  // Draw countdown digit...
+  byte offset_y = 5;
+
+  _display->clear_pixels();
+
+  for (byte y = 0; y < 7; y++)
+  {
+    for (byte x = 0; x < 5; x++)
+    {
+      if (countdown_data[_countdown_state][y][x] != 0)
+      {
+        if (x + 1 + (_countdown_state * 2) < 10)
+        {
+          _display->set_pixel(x + 1 + (_countdown_state * 2), y + offset_y, 4);
+        }
+      }
+    }
+  }
+
+  _display->update();
+  _countdown_last_update = millis();
 }
 
 // Spawn new food at a random location.

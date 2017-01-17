@@ -21,6 +21,7 @@ class Display
     void set_pixel(byte x, byte y, byte value);
     void clear_pixel(byte x, byte y);
     byte get_pixel(byte x, byte y);
+    void clear_pixels();
     
   private:
     void shiftout(byte* data);
