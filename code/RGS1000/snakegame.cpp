@@ -96,7 +96,7 @@ void SnakeGame::update_game()
 // Update logic for countdown state.
 void SnakeGame::update_countdown()
 {
-  if (millis() - _countdown_last_update < 700)
+  if (millis() - _countdown_last_update < 1000)
   {
     return;
   }
@@ -122,7 +122,7 @@ void SnakeGame::update_countdown()
       {
         if (x + 1 + (_countdown_state * 2) < 10)
         {
-          _display->set_pixel(x + 1 + (_countdown_state * 2), y + offset_y, 4);
+          _display->set_pixel(x + 1 + (_countdown_state * 2), y + offset_y, 7);
         }
       }
     }

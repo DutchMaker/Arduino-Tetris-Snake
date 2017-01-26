@@ -18,7 +18,7 @@
 #define SNAKE_GAMESTATE_RUNNING 2
 #define SNAKE_GAMESTATE_DEAD 3
 
-#define SNAKE_SPEED 70  // millis per update, lower = faster.
+#define SNAKE_SPEED 100  // millis per update, lower = faster.
 
 class SnakeGame
 {

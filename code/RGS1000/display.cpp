@@ -13,6 +13,14 @@ void Display::setup()
   SPCR = (1 << SPE) | (1 << MSTR) | (1 << DORD);      // Start SPI as Master, transfer with LSBFIRST
 
   clear_pixels();
+
+  /*for (byte row = 0; row < 20; row++)
+  {
+    for (byte col = 0; col < 10; col++)
+    {
+      _framebuffer[row][col] = 7;
+    }
+  }*/
 }
 
 // Update the display according to the data in the framebuffer.
@@ -32,7 +40,7 @@ void Display::update()
 
   _cleared = false;
     
-  for (int row = 0; row < 20; row++)
+  for (byte row = 0; row < 20; row++)
   {
     unsigned long row_data = 0; // 32 bits that are all disabled.
                                 // The first 20 bits of row_data are used for the state of the row outputs (top to bottom).
@@ -40,7 +48,7 @@ void Display::update()
     row_data |= 1UL << (32 - row - 1);  // Set enabled bit for current row
                                         // Example: if row == 2 (which is the 3rd row) then row_data = 00100000000000000000000000000000
 
-    for (int col = 0; col < 10; col++)
+    for (byte col = 0; col < 10; col++)
     {
       if (_framebuffer[row][col] == 0)
       {
@@ -71,7 +79,7 @@ void Display::update()
       {
         column_data &= ~(1UL << (32 - col - 20 - 1));
       }
-      
+
       // Split row_data and column_data to seperate bytes.
       _data[0] = (byte)((row_data >> 24) & 0xFF);
       _data[1] = (byte)((row_data >> 16) & 0xFF);
@@ -87,7 +95,7 @@ void Display::update()
       shiftout(_data);
     }
   }
-
+  
   _last_update = millis();
 }
 
