@@ -13,14 +13,6 @@ void Display::setup()
   SPCR = (1 << SPE) | (1 << MSTR) | (1 << DORD);      // Start SPI as Master, transfer with LSBFIRST
 
   clear_pixels();
-
-  /*for (byte row = 0; row < 20; row++)
-  {
-    for (byte col = 0; col < 10; col++)
-    {
-      _framebuffer[row][col] = 7;
-    }
-  }*/
 }
 
 // Update the display according to the data in the framebuffer.
@@ -88,6 +80,8 @@ void Display::update()
       _data[4] = (byte)((column_data >> 16) & 0xFF);
       _data[5] = (byte)((column_data >> 8) & 0xFF);
       _data[6] = (byte)(column_data & 0xFF);
+      _data[7] = 0; // GPO
+      _data[8] = 0; // GPO
 
       // Shift out the data to the shift registers.
       // The first byte needs to be shift out as last (rows are at the top of the shift registers).
@@ -99,21 +93,67 @@ void Display::update()
   _last_update = millis();
 }
 
+// PCB rev 1 has an error that switches a few header pins.
+// This function fixes the X coordinate to compensate for that error.
+byte Display::pcb_rev1_fix_x(byte x)
+{
+  switch (x)
+  {
+    case 5:
+      return 6;
+    case 6:
+      return 5;
+  }
+
+  return x;
+}
+
+// PCB rev 1 has an error that switches a few header pins.
+// This function fixes the Y coordinate to compensate for that error.
+byte Display::pcb_rev1_fix_y(byte y)
+{
+  switch (y)
+  {
+    case 5:
+      return 6;
+    case 6:
+      return 5;
+    case 10:
+      return 11;
+    case 11:
+      return 10;
+    case 15:
+      return 16;
+    case 16:
+      return 15;
+  }
+
+  return y;
+}
+
 // Set the value of the pixel at specified location.
 void Display::set_pixel(byte x, byte y, byte value)
 {
+  // PCB rev 1: Hard-coded corrections because of error on PCB.
+  x = pcb_rev1_fix_x(x);
+  y = pcb_rev1_fix_y(y);
+  
   _framebuffer[y][x] = value;
 }
 
 // Clear the value of the pixel at specified location.
 void Display::clear_pixel(byte x, byte y)
 {
-  _framebuffer[y][x] = 0;
+  set_pixel(x, y, 0);
 }
 
 // Get the value of the pixel at specified location.
 byte Display::get_pixel(byte x, byte y)
 {
+  // PCB rev 1: Hard-coded corrections because of error on PCB.
+  x = pcb_rev1_fix_x(x);
+  y = pcb_rev1_fix_y(y);
+
   return _framebuffer[y][x];
 }
 
@@ -145,6 +185,8 @@ void Display::clearscreen()
   _data[4] = 0;
   _data[5] = 0;
   _data[6] = 0;
+  _data[7] = 0;
+  _data[8] = 0;
 
   shiftout(_data);
 }
@@ -154,7 +196,7 @@ void Display::shiftout(byte* data)
 {
   SHIFT_PORT &= ~SR_LATCH; // Latch low
   
-  for (int i = 6; i >= 0; i--)
+  for (int i = 8; i >= 0; i--)
   {
     spi_send(data[i]);
   }

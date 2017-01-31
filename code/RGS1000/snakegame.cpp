@@ -19,6 +19,7 @@ void SnakeGame::restart()
 {
   _countdown_state = -1;
   _game_state = SNAKE_GAMESTATE_COUNTDOWN;
+  _snake_direction = SNAKE_DIR_RIGHT;
 }
 
 void SnakeGame::start_game()

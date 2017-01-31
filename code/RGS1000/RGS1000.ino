@@ -6,6 +6,10 @@ Display led_display;
 Controller controller;
 SnakeGame snake_game;
 
+unsigned long t;
+byte row;
+byte col;
+
 void setup() 
 {
   led_display.setup();

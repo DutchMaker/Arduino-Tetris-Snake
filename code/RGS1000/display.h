@@ -27,11 +27,13 @@ class Display
     void shiftout(byte* data);
     void spi_send(byte data);
     void clearscreen();
+    byte pcb_rev1_fix_x(byte x);
+    byte pcb_rev1_fix_y(byte y);
 
     unsigned long _last_update;
     bool _cleared;
     
-    byte _data[7];
+    byte _data[9];
     byte _framebuffer[20][10];
     byte _palette[8][3] = { { 0, 0, 0 }, { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 }, { 1, 1, 0 }, { 0, 1, 1 }, { 1, 0, 1 }, { 1, 1, 1 } };
 };
