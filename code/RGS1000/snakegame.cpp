@@ -20,6 +20,8 @@ void SnakeGame::restart()
   _countdown_state = -1;
   _game_state = SNAKE_GAMESTATE_COUNTDOWN;
   _snake_direction = SNAKE_DIR_RIGHT;
+
+  _controller->reset_queue();
 }
 
 void SnakeGame::start_game()
@@ -71,11 +73,9 @@ void SnakeGame::update()
 // Update logic for running state.
 void SnakeGame::update_game()
 {
-  _controller->update();
-  update_direction();
-
   if (millis() - _snake_last_move > SNAKE_SPEED)
   {
+    update_direction();
     move_snake();
     draw_snake();
 
@@ -136,8 +136,6 @@ void SnakeGame::update_countdown()
 // Update logic for dead game state.
 void SnakeGame::update_dead()
 {
-  _controller->update();
-  
   if (millis() - _dead_last_update < 100)
   {
     return;
@@ -155,7 +153,7 @@ void SnakeGame::update_dead()
 
   if (millis() - _dead_since > 1000)
   {
-    if (_controller->up)
+    if (_controller->get_button_from_queue() == CONTROLLER_BIT_UP)
     {
       restart();
       start_game();
@@ -311,25 +309,32 @@ void SnakeGame::draw_snake()
 // Update the direction in which the snake is traveling.
 void SnakeGame::update_direction()
 {
-  if (_controller->up && _snake_direction != SNAKE_DIR_UP && _snake_direction != SNAKE_DIR_DOWN)
+  byte button = _controller->get_button_from_queue();
+
+  if (button == 0)
+  {
+    return;
+  }
+  
+  if (button == CONTROLLER_BIT_UP && _snake_direction != SNAKE_DIR_UP && _snake_direction != SNAKE_DIR_DOWN)
   {
     _snake_direction = SNAKE_DIR_UP;
     return;
   }
 
-  if (_controller->right && _snake_direction != SNAKE_DIR_RIGHT && _snake_direction != SNAKE_DIR_LEFT)
+  if (button == CONTROLLER_BIT_RIGHT && _snake_direction != SNAKE_DIR_RIGHT && _snake_direction != SNAKE_DIR_LEFT)
   {
     _snake_direction = SNAKE_DIR_RIGHT;
     return;
   }
 
-  if (_controller->down && _snake_direction != SNAKE_DIR_DOWN && _snake_direction != SNAKE_DIR_UP)
+  if (button == CONTROLLER_BIT_DOWN && _snake_direction != SNAKE_DIR_DOWN && _snake_direction != SNAKE_DIR_UP)
   {
     _snake_direction = SNAKE_DIR_DOWN;
     return;
   }
 
-  if (_controller->left && _snake_direction != SNAKE_DIR_LEFT && _snake_direction != SNAKE_DIR_RIGHT)
+  if (button == CONTROLLER_BIT_LEFT && _snake_direction != SNAKE_DIR_LEFT && _snake_direction != SNAKE_DIR_RIGHT)
   {
     _snake_direction = SNAKE_DIR_LEFT;
     return;

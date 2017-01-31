@@ -12,22 +12,23 @@
 #define CONTROLLER_BIT_DOWN 4
 #define CONTROLLER_BIT_LEFT 3
 
-#define CONTROLLER_UPDATE_SPEED 50
+#define CONTROLLER_UPDATE_SPEED 25
 
 class Controller
 {
   public:
     void setup();
     void update();
-    
-    bool up;
-    bool right;
-    bool down;
-    bool left;
+    byte get_button_from_queue();
+    void reset_queue();
     
   private:
+    void shrink_queue();
+    
     uint8_t _last_data;
     unsigned long _last_update;
+    byte _queue[10];
+    byte _queue_length = 0;
 };
 
 #endif
