@@ -22,6 +22,8 @@ class Controller
     byte get_button_from_queue();
     void reset_queue();
     
+    int update_speed;
+    
   private:
     void shrink_queue();
     

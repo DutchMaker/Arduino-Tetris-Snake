@@ -11,6 +11,7 @@ void Display::setup()
   SHIFT_PORT &= ~(SR_DATA | SR_LATCH | SR_CLOCK);     // Set shift register control pins low
   SHIFT_PORT |= SR_RESET;                             // Set reset pin high
   SPCR = (1 << SPE) | (1 << MSTR) | (1 << DORD);      // Start SPI as Master, transfer with LSBFIRST
+  SPSR = 1; // Set SPI2X bit (double SPI clock)
 
   clear_pixels();
 }

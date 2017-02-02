@@ -9,6 +9,8 @@ void Controller::setup()
   digitalWrite(CONTROLLER_PIN_CP, LOW);
   digitalWrite(CONTROLLER_PIN_PL, HIGH);
 
+  update_speed = CONTROLLER_UPDATE_SPEED;
+  
   _last_data = 0;
   reset_queue();
 }

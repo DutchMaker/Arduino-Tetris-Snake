@@ -4,7 +4,7 @@
 #include "Arduino.h"
 #include <avr/io.h>
 
-#define FPS 150
+#define FPS 300
 
 #define SHIFT_PORT PORTB  // Shift register port
 #define SR_DATA (1<<PB3)  // MOSI (SI)  11

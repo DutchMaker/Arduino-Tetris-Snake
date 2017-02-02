@@ -73,7 +73,7 @@ void SnakeGame::update()
 // Update logic for running state.
 void SnakeGame::update_game()
 {
-  if (millis() - _snake_last_move > SNAKE_SPEED)
+  if (millis() - _game_last_update > SNAKE_GAME_SPEED)
   {
     update_direction();
     move_snake();
@@ -84,7 +84,7 @@ void SnakeGame::update_game()
       spawn_food();
     }
     
-    _snake_last_move = millis();
+    _game_last_update = millis();
   }
 
   if (millis() - _score_last_update >= 1000)
