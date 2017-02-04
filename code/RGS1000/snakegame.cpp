@@ -1,16 +1,11 @@
 #include "snakegame.h"
 
-byte countdown_data[3][7][5] = {
-  { { 0, 1, 1, 1, 0 }, { 1, 0, 0, 0, 1 }, { 0, 0, 0, 0, 1 }, { 0, 0, 1, 1, 0 }, { 0, 0, 0, 0, 1 }, { 1, 0, 0, 0, 1 }, { 0, 1, 1, 1, 0 } },
-  { { 0, 1, 1, 1, 0 }, { 1, 0, 0, 0, 1 }, { 0, 0, 0, 1, 0 }, { 0, 0, 1, 0, 0 }, { 0, 1, 0, 0, 0 }, { 1, 0, 0, 0, 0 }, { 1, 1, 1, 1, 1 } },
-  { { 0, 0, 1, 0, 0 }, { 0, 1, 1, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 0, 1, 0, 0 }, { 0, 1, 1, 1, 0 } }
-};
-
 // Start snake game.
-void SnakeGame::start(Display* display, Controller* controller)
+void SnakeGame::start(Display* display, Controller* controller, Menu* menu)
 {
   _display = display;
   _controller = controller;
+  _menu = menu;
 
   restart();
 }
@@ -20,6 +15,8 @@ void SnakeGame::restart()
   _countdown_state = -1;
   _game_state = SNAKE_GAMESTATE_COUNTDOWN;
   _snake_direction = SNAKE_DIR_RIGHT;
+
+  _display->clear_pixels();
 
   _controller->reset_queue();
 }
@@ -157,6 +154,10 @@ void SnakeGame::update_dead()
     {
       restart();
       start_game();
+
+      _menu->show_menu();
+      _controller->reset_queue();
+
       return;
     }
   }

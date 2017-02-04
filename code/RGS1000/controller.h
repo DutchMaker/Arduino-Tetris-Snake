@@ -30,7 +30,7 @@ class Controller
     uint8_t _last_data;
     unsigned long _last_update;
     byte _queue[10];
-    byte _queue_length = 0;
+    int8_t _queue_length = 0;
 };
 
 #endif

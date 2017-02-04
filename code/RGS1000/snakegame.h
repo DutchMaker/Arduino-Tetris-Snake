@@ -4,6 +4,8 @@
 #include "Arduino.h"
 #include "display.h"
 #include "controller.h"
+#include "menu.h"
+#include "countdown_data.h"
 
 #define SNAKE_DIR_UP 0
 #define SNAKE_DIR_RIGHT 1
@@ -23,7 +25,7 @@
 class SnakeGame
 {
   public:
-    void start(Display* display, Controller* controller);
+    void start(Display* display, Controller* controller, Menu* menu);
     void update();
     
   private:
@@ -39,6 +41,7 @@ class SnakeGame
     
     Display* _display;                        // Pointer to Display object.
     Controller* _controller;
+    Menu* _menu;
 
     byte _game_state;
     

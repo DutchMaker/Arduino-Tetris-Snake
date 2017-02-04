@@ -12,6 +12,7 @@ void Controller::setup()
   update_speed = CONTROLLER_UPDATE_SPEED;
   
   _last_data = 0;
+  _last_update = 0;
   reset_queue();
 }
 
@@ -97,7 +98,10 @@ void Controller::shrink_queue()
 
   _queue[9] = 0;
 
-  _queue_length--;
+  if (_queue_length > 0)
+  {
+    _queue_length--;
+  }
 }
 
 void Controller::reset_queue()
